@@ -20,7 +20,7 @@ namespace AliaSQL.IntegrationTests
             string scriptsDirectory =  Path.Combine("Scripts",GetType().Name.Replace("Tester", ""));
 
             string scriptFileMd5 = ChangeScriptExecutor.GetFileMD5Hash(Path.Combine(scriptsDirectory,"Everytime", "TestScript.sql"));
-            var settings = new ConnectionSettings(".\\sqlexpress", "aliasqltest", true, null, null);
+            var settings = new ConnectionSettings(".", "aliasqltest", true, null, null);
             new ConsoleAliaSQL().UpdateDatabase(settings, scriptsDirectory, RequestedDatabaseAction.Drop);
 
             //act

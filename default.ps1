@@ -1,6 +1,6 @@
 properties {
-	$projectName = "AliaSQL" 
-    $version = "1.4.2"
+	$projectName = "AliaSQL"
+    $version = "2.0.0"
 
     $version = $version + "." + (get-date -format "MMdd")  
 	$projectConfig = "Release"
@@ -8,7 +8,7 @@ properties {
 	$source_dir = "$base_dir\source"
     $unitTestAssembly = "$projectName.UnitTests.dll"
     $integrationTestAssembly = "$projectName.IntegrationTests.dll"
-    $nunitPath = "$source_dir\packages\NUnit.Runners.2.6.3\tools\nunit-console-x86.exe"
+    $nunitPath = "$source_dir\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe"
     $AliaSQLPath = "$base_dir\lib\AliaSQL\AliaSQL.exe"
 	$build_dir = "$base_dir\build"
 	$test_dir = "$build_dir\test"
@@ -20,10 +20,20 @@ properties {
     $integrationScripts = "$source_dir\AliaSQL.IntegrationTests\scripts"
 	$databaseName = "Demo"
     $SqlPackagePath = "C:\Program Files (x86)\Microsoft SQL Server\110\DAC\bin\SqlPackage.exe"
+        $SqlPackagePath = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\Extensions\Microsoft\SQLDB\DAC\150\SqlPackage.exe"
+    if (!(Test-Path  ("$SqlPackagePath"))){
+        write-host "Switch to SQL Server 2017 for packaging"
+        $SqlPackagePath = "C:\Program Files (x86)\Microsoft SQL Server\140\DAC\bin\SqlPackage.exe"  
+    }
+    if (!(Test-Path  ("$SqlPackagePath"))){
+        write-host "Switch to SQL Server 2016 for packaging"
+        $SqlPackagePath = "C:\Program Files (x86)\Microsoft SQL Server\130\DAC\bin\SqlPackage.exe"  
+    }
+
 }
 
-task default -depends Init, UpdateAssemblyInfo, Compile, Test, IntegrationTest 
-task ci -depends Init, UpdateAssemblyInfo, Compile, Test, IntegrationTest, Package, NugetPack
+task default -depends Init, Compile, Test, IntegrationTest 
+task ci -depends Init, Compile, Test, IntegrationTest, Package, NugetPack
 
 task Init {
     delete_file $package_file
@@ -34,9 +44,8 @@ task Init {
 
 task Compile -depends Init {
     exec { & $source_dir\.nuget\nuget.exe restore  $source_dir\$projectName.sln }  
-    exec { msbuild /t:clean /v:q /nologo /p:Configuration=$projectConfig $source_dir\$projectName.sln /p:VisualStudioVersion=12.0 } 
-
-    exec { msbuild /t:build /v:q /nologo /p:Configuration=$projectConfig $source_dir\$projectName.sln /p:VisualStudioVersion=12.0 } 
+    exec{dotnet clean -c $projectConfig /p:VisualStudioVersion=14.0 $source_dir\$projectName.sln}
+    exec{dotnet build -c $projectConfig /p:VisualStudioVersion=14.0 $source_dir\$projectName.sln /p:AssemblyVersion=$version}
 
     ILMergeAndCopy
 }
@@ -48,7 +57,7 @@ task Test {
         if (Test-Path  ("$test_dir\$unitTestAssembly")){
             write-host "Testing $unitTestAssembly"
 	        exec {
-		        & $nunitPath $test_dir\$unitTestAssembly /xml $build_dir\UnitTestResult.xml    
+		        & $nunitPath $test_dir\$unitTestAssembly --work:$build_dir    
 	        }
         }
         else
@@ -67,7 +76,9 @@ task IntegrationTest -depends  Init, Compile, Test {
          Copy_files "$integrationScripts" "$test_dir/scripts"
         if (Test-Path  ("$test_dir\$integrationTestAssembly")){
             write-host "Testing $integrationTestAssembly"
-            exec { & $nunitPath $test_dir\$integrationTestAssembly /xml $build_dir\IntegrationTestResult.xml}
+            cd .\build
+            cd .\test
+            exec { & $nunitPath $test_dir\$integrationTestAssembly  --work:$build_dir}
         }
         else
         {
@@ -127,8 +138,9 @@ task Package -depends Compile {
     write-host "ILMergeAndCopy"
     write-host "Copy newly compiled version of AliaSQL to package folder"
     copy_files "$base_dir\source\AliaSQL.Console\Bin\Release" "$package_dir\AliaSQL" 
+    copy-item "$base_dir\source\AliaSQL.Core\bin\Release\net461\AliaSQL.Core.xml" "$package_dir\AliaSQL\net461\AliaSQL.Core.xml" 
     exec {
-        & $base_dir\lib\ilmerge.exe /target:exe /lib:C:\Windows\Microsoft.NET\Framework\v4.0.30319 /targetplatform:v4 /out:$package_dir\AliaSQL\AliaSQL.exe $package_dir\AliaSQL\AliaSQL.console.exe $package_dir\AliaSQL\AliaSQL.core.dll  
+        & $base_dir\lib\ilmerge.exe /ndebug /target:exe /targetplatform:v4,"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1"  /out:$package_dir\AliaSQL\AliaSQL.exe $package_dir\AliaSQL\net461\AliaSQL.console.exe $package_dir\AliaSQL\net461\AliaSQL.core.dll  
         }
     write-host "Copy newly compiled version of AliaSQL to Nuget package folder"
     copy-item $package_dir\AliaSQL\AliaSQL.exe $base_dir\nuget\content\scripts\AliaSQL.exe -Force
@@ -142,11 +154,11 @@ task GenerateDatabaseDiff {
     create-dbdiffscript $databaseName $databaseScripts
 }
 
-function create-dbdiffscript([string]$datebase_name, [string]$database_scripts)
+function create-dbdiffscript([string]$database_name, [string]$database_scripts)
 {
     $databaseName_Original = "$datebase_name" + "_Original"
     $databaseScriptsUpdate = "$database_scripts\Scripts\Update"
-    $newScriptName = ((Get-ChildItem $databaseScriptsUpdate -filter "*.sql" | ForEach-Object {[int]$_.Name.Substring(0, 4)} | Sort-Object)[-1] + 1).ToString("0000-") + "$datebase_name" + ".sql.temp"
+    $newScriptName = ((Get-ChildItem $databaseScriptsUpdate -filter "*.sql" | ForEach-Object {[int]$_.Name.Substring(0, 4)} | Sort-Object)[-1] + 1).ToString("0000-") + "$database_name" + ".sql.temp"
 
     write-host "Building original database..."
     copy_files "$databaseScripts\Deploy-Once" "$package_dir\temp\DBCreate\update"
@@ -154,9 +166,9 @@ function create-dbdiffscript([string]$datebase_name, [string]$database_scripts)
     
     write-host "`n`nGenerating the diff script"
     #generate the needed .dacpac (we'll delete it later)
-    exec { & $SqlPackagePath /a:Extract /ssn:.\SQLEXPRESS /sdn:"$datebase_name" /tf:$databaseScripts\$datebase_name.dacpac }
+    exec { & $SqlPackagePath /a:Extract /ssn:.\SQLEXPRESS /sdn:"$database_name" /tf:$databaseScripts\$database_name.dacpac }
     #generate the diff script
-    exec { & $SqlPackagePath /a:Script /op:$databaseScriptsUpdate\$newScriptName /sf:$databaseScripts\$datebase_name.dacpac /tsn:.\SQLEXPRESS /tdn:"$databaseName_Original"}
+    exec { & $SqlPackagePath /a:Script /op:$databaseScriptsUpdate\$newScriptName /sf:$databaseScripts\$database_name.dacpac /tsn:.\SQLEXPRESS /tdn:"$databaseName_Original"}
     
     write-host "`n`nCleaning up generated script..."
     $scriptLines = Get-Content $databaseScriptsUpdate\$newScriptName
@@ -196,13 +208,13 @@ function create-dbdiffscript([string]$datebase_name, [string]$database_scripts)
     }    
 
     write-host "Cleaning up temporary files and databases..."
-    exec { & del $databaseScripts\$datebase_name.dacpac }
+    exec { & del $databaseScripts\$database_name.dacpac }
     exec { & sqlcmd -S .\SQLEXPRESS -Q "DROP DATABASE $databaseName_Original"  }
 
     if ($noDiff)
     {
         Remove-Item $databaseScriptsUpdate\$newScriptName
-         write-host "No schema changes found for $datebase_name" -foregroundcolor "green"
+         write-host "No schema changes found for $database_name" -foregroundcolor "green"
     }
     else 
     {
@@ -263,53 +275,4 @@ AliaSQL.exe $verb %serverName% $databaseName .
 pause" | out-file $filename -encoding "ASCII"       
 }
 
-
-function Update-AssemblyInfoFiles ([string] $version, [System.Array] $excludes = $null) {
- 
-#-------------------------------------------------------------------------------
-# Update version numbers of AssemblyInfo.cs
-# adapted from: http://www.luisrocha.net/2009/11/setting-assembly-version-with-windows.html
-#-------------------------------------------------------------------------------
- 
-	if ($version -notmatch "[0-9]+(\.([0-9]+|\*)){1,3}") {
-		Write-Error "Version number incorrect format: $version"
-	}
-	
-	$versionPattern = 'AssemblyVersion\("[0-9]+(\.([0-9]+|\*)){1,3}"\)'
-	$versionAssembly = 'AssemblyVersion("' + $version + '")';
-	$versionFilePattern = 'AssemblyFileVersion\("[0-9]+(\.([0-9]+|\*)){1,3}"\)'
-	$versionAssemblyFile = 'AssemblyFileVersion("' + $version + '")';
- 
-	Get-ChildItem -r -filter AssemblyInfo.* | % {
-		$filename = $_.fullname
-		
-		$update_assembly_and_file = $true
-		
-		# set an exclude flag where only AssemblyFileVersion is set
-		if ($excludes -ne $null)
-			{ $excludes | % { if ($filename -match $_) { $update_assembly_and_file = $false	} } }
-		
-		# see http://stackoverflow.com/questions/3057673/powershell-locking-file
-		# I am getting really funky locking issues. 
-		# The code block below should be:
-		#     (get-content $filename) | % {$_ -replace $versionPattern, $version } | set-content $filename
- 
-		$tmp = ($file + ".tmp")
-		if (test-path ($tmp)) { remove-item $tmp }
- 
-		if ($update_assembly_and_file) {
-			(get-content $filename) | % {$_ -replace $versionFilePattern, $versionAssemblyFile } | % {$_ -replace $versionPattern, $versionAssembly }  > $tmp
-			write-host Updating file AssemblyInfo and AssemblyFileInfo: $filename --> $versionAssembly / $versionAssemblyFile
-		} else {
-			(get-content $filename) | % {$_ -replace $versionFilePattern, $versionAssemblyFile } > $tmp
-			write-host Updating file AssemblyInfo only: $filename --> $versionAssemblyFile
-		}
- 
-		if (test-path ($filename)) { remove-item $filename }
-        #diff tools aren't too happy with Unicode files - change it to ansi
-        Set-Content $tmp -Encoding ASCII -Value (Get-Content $tmp)
-		move-item $tmp $filename -force		
- 
-	}
-}
 

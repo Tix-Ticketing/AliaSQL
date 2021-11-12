@@ -20,3 +20,4 @@ Express/
 *.msi
 setup.exe
 source/packages/*
+source/.vs/

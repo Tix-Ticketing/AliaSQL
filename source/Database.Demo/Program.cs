@@ -85,7 +85,7 @@ namespace Database
 
             if (string.IsNullOrEmpty(servername))
             {
-                servername = ".\\sqlexpress";
+                servername = ".";
             }
             return servername;
         }

@@ -18,7 +18,7 @@ namespace AliaSQL.IntegrationTests
             //arrange
             string scriptsDirectory = Path.Combine("Scripts", GetType().Name.Replace("Tester", ""));
 
-            var settings = new ConnectionSettings(".\\sqlexpress", "aliasqltest", true, null, null);
+            var settings = new ConnectionSettings(".", "aliasqltest", true, null, null);
             new ConsoleAliaSQL().UpdateDatabase(settings, scriptsDirectory, RequestedDatabaseAction.Drop);
 
             //act

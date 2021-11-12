@@ -2,11 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata schemaVersion="2">
     <id>AliaSQL.Kickstarter</id>
-    <version>1.4.1.0</version>
+    <version>2.0.0.0</version>
     <title>AliaSQL Kickstarter</title>
     <authors>Eric Coffman &amp; Jeffrey Palermo</authors>
     <owners>Eric Coffman &amp; Jeffrey Palermo</owners>
-    <licenseUrl>http://github.com/ClearMeasure/AliaSQL/license.txt</licenseUrl>
+    <license type="file">license.txt</license>
+    <icon>images\AliaSQL-200x200.png</icon> 
     <projectUrl>http://github.com/ClearMeasure/AliaSQL</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Visual Studio kickstarter for AliaSQL</description>
@@ -26,6 +27,7 @@
 	  * version 1.4.0: Updated with new version of AliaSQL
 	  * version 1.4.1: Updated with new version of AliaSQL
 	  * version 1.4.2: Updated with new version of AliaSQL
+	  * version 2.0.0: Updated with new version of AliaSQL
    </releaseNotes>
   </metadata>
   <files>
@@ -34,5 +36,7 @@
     <file src="Content\scripts\**" target="content\scripts" />  
     <file src="Content\Readme.txt.pp" target="content" />
     <file src="tools\install.ps1" target="tools\install.ps1" />
+    <file src="..\license.txt" target="" />
+    <file src="..\images\AliaSQL-200x200.png" target="images\" />
   </files>
 </package>

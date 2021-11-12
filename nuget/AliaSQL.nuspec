@@ -2,17 +2,17 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata schemaVersion="2">
     <id>AliaSQL</id>
-    <version>1.4.1.0</version>
+    <version>2.0.0.0</version>
     <title>AliaSQL</title>
     <authors>Eric Coffman &amp; Jeffrey Palermo</authors>
     <owners>Eric Coffman &amp; Jeffrey Palermo</owners>
-    <licenseUrl>http://github.com/ClearMeasure/AliaSQL/license.txt</licenseUrl>
     <projectUrl>http://github.com/ClearMeasure/AliaSQL</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Command line database change management tool.  And a drop-in replacement for the Tarantino database deployer.</description>
-    <summary>Command line database change management tool that is a drop in replacement for Tarantino. Works with SQL Server 2005-2014</summary>
+    <summary>Command line database change management tool that is a drop in replacement for Tarantino. Works with SQL Server 2005-2022</summary>
     <tags>Database, change management, tarantino, migration, migrations, deploy, deployer</tags>
-    <iconUrl>https://raw.github.com/ClearMeasure/AliaSQL/master/images/AliaSQL-200x200.png</iconUrl>
+    <license type="file">license.txt</license>
+    <icon>images\AliaSQL-200x200.png</icon> 
     <frameworkAssemblies>
     </frameworkAssemblies>
     <releaseNotes>
@@ -25,10 +25,12 @@
           * version 1.4.0 Added concept of RunAlways scripts that will be executed always, not only when there are new/changed files like in Everytime folder - thanks mpobudejski.
  	  * version 1.4.1 Added file encoding for change to read Spanish characters - Thanks armanvg, Added transaction support for test data scripts - Thanks jlbrown
  	  * version 1.4.2 Fix for test data scripts not logging as a result of last revision
+ 	  * version 2.0.0 Updated to support .net standard 2.0
 </releaseNotes>
   </metadata>
   <files>
     <file src="..\build\package\AliaSQL\AliaSQL.exe" target="tools\AliaSQL.exe" />
-    <file src="..\build\package\AliaSQL\AliaSQL.pdb" target="tools\AliaSQL.pdb" />
+    <file src="..\license.txt" target="" />
+    <file src="..\images\AliaSQL-200x200.png" target="images\" />
   </files>
 </package>

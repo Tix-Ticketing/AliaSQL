@@ -21,7 +21,7 @@ namespace AliaSQL.IntegrationTests
 
             //arrange
             string scriptsDirectory = Path.Combine("Scripts", GetType().Name.Replace("Tester", ""));
-            var settings = new ConnectionSettings(".\\sqlexpress", "aliasqltest", true, null, null);
+            var settings = new ConnectionSettings(".", "aliasqltest", true, null, null);
             new DbUpdater().UpdateDatabase(new ConnectionStringGenerator().GetConnectionString(settings, true), RequestedDatabaseAction.Drop, scriptsDirectory);
 
             //act
@@ -49,7 +49,7 @@ namespace AliaSQL.IntegrationTests
 
             //arrange
             string scriptsDirectory = Path.Combine("Scripts", GetType().Name.Replace("Tester", ""));
-            var settings = new ConnectionSettings(".\\sqlexpress", "aliasqltest", true, null, null);
+            var settings = new ConnectionSettings(".", "aliasqltest", true, null, null);
             new DbUpdater().UpdateDatabase(new ConnectionStringGenerator().GetConnectionString(settings, true), RequestedDatabaseAction.Drop, scriptsDirectory);
 
             //act
@@ -70,7 +70,7 @@ namespace AliaSQL.IntegrationTests
 
             //arrange
             string scriptsDirectory = Path.Combine("Scripts", GetType().Name.Replace("Tester", ""));
-            var settings = new ConnectionSettings(".\\sqlexpress", "aliasqltest", true, null, null);
+            var settings = new ConnectionSettings(".", "aliasqltest", true, null, null);
             new DbUpdater().UpdateDatabase(new ConnectionStringGenerator().GetConnectionString(settings, true), RequestedDatabaseAction.Drop, scriptsDirectory);
             bool updated = new DbUpdater().UpdateDatabase(new ConnectionStringGenerator().GetConnectionString(settings, true), RequestedDatabaseAction.Update, scriptsDirectory).Success;
 
@@ -87,7 +87,7 @@ namespace AliaSQL.IntegrationTests
 
             //arrange
             string scriptsDirectory = Path.Combine("Scripts", GetType().Name.Replace("Tester", ""));
-            var settings = new ConnectionSettings(".\\sqlexpress", "aliasqltest", true, null, null);
+            var settings = new ConnectionSettings(".", "aliasqltest", true, null, null);
             new DbUpdater().UpdateDatabase(new ConnectionStringGenerator().GetConnectionString(settings, true), RequestedDatabaseAction.Drop, scriptsDirectory);
             int dbversionbeforeupdate = new DbUpdater().DatabaseVersion(new ConnectionStringGenerator().GetConnectionString(settings, true));
 

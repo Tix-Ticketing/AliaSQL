@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Text.RegularExpressions;
 using System.Transactions;
 using AliaSQL.Core.Model;
