@@ -1,6 +1,6 @@
 properties {
 	$projectName = "AliaSQL"
-    $version = "2.0.0"
+    $version = "2.0.1"
 
     $version = $version + "." + (get-date -format "MMdd")  
 	$projectConfig = "Release"
@@ -8,7 +8,7 @@ properties {
 	$source_dir = "$base_dir\source"
     $unitTestAssembly = "$projectName.UnitTests.dll"
     $integrationTestAssembly = "$projectName.IntegrationTests.dll"
-    $nunitPath = "$source_dir\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe"
+    $nunitPath = "$source_dir\packages\NUnit.ConsoleRunner.3.12.0\tools\nunit3-console.exe"
     $AliaSQLPath = "$base_dir\lib\AliaSQL\AliaSQL.exe"
 	$build_dir = "$base_dir\build"
 	$test_dir = "$build_dir\test"
@@ -44,8 +44,8 @@ task Init {
 
 task Compile -depends Init {
     exec { & $source_dir\.nuget\nuget.exe restore  $source_dir\$projectName.sln }  
-    exec{dotnet clean -c $projectConfig /p:VisualStudioVersion=14.0 $source_dir\$projectName.sln}
-    exec{dotnet build -c $projectConfig /p:VisualStudioVersion=14.0 $source_dir\$projectName.sln /p:AssemblyVersion=$version}
+    exec{dotnet clean -c $projectConfig /p:VisualStudioVersion=16.0 $source_dir\$projectName.sln}
+    exec{dotnet build -c $projectConfig /p:VisualStudioVersion=16.0 $source_dir\$projectName.sln /p:AssemblyVersion=$version}
 
     ILMergeAndCopy
 }
