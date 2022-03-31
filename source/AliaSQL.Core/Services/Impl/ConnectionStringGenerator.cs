@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using System.Text;
 using AliaSQL.Core.Model;
 
@@ -20,10 +21,11 @@ namespace AliaSQL.Core.Services.Impl
 
 			if (settings.IntegratedAuthentication)
 			{
-				connectionString.Append("Integrated Security=True;");
+				connectionString.Append("Integrated Security=True;TrustServerCertificate=true;");
 			}
 			else
-				connectionString.AppendFormat("User ID={0};Password={1};", settings.Username, settings.Password);
+				connectionString.AppendFormat("User ID={0};Password={1};TrustServerCertificate=true;", settings.Username, settings.Password);
+			Console.WriteLine(connectionString);
 
 			return connectionString.ToString();
 		}
