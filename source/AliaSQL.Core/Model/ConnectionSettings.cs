@@ -7,15 +7,17 @@
 		private string _password;
 		private string _server;
 		private string _username;
-
+		private bool _trustServerCertificate;
+		
 		public ConnectionSettings(string server, string database, bool integratedAuthentication, string username,
-		                          string password)
+		                          string password, bool trustServerCertificate = false)
 		{
 			_server = server;
 			_database = database;
 			_integratedAuthentication = integratedAuthentication;
 			_username = username;
 			_password = password;
+			_trustServerCertificate = trustServerCertificate;
 		}
 
 		public string Database
@@ -42,6 +44,11 @@
 		{
 			get { return _username; }
 		}
+		
+		public bool TrustServerCertificate
+		{
+			get { return _trustServerCertificate; }
+		}
 
 		public override bool Equals(object obj)
 		{
@@ -52,13 +59,14 @@
 			bool integratedMatches = IntegratedAuthentication == settings.IntegratedAuthentication;
 			bool usernameMatches = Username == settings.Username;
 			bool passwordMatches = Password == settings.Password;
+			bool trustServerCertificateMatches = TrustServerCertificate == settings.TrustServerCertificate;
 
-			return (serverMatches && databaseMatches && integratedMatches && usernameMatches && passwordMatches);
+			return (serverMatches && databaseMatches && integratedMatches && usernameMatches && passwordMatches && trustServerCertificateMatches);
 		}
 
 		public override int GetHashCode()
 		{
-			string combinedKey = _server + _database + _username + _password + _integratedAuthentication;
+			string combinedKey = _server + _database + _username + _password + _integratedAuthentication + _trustServerCertificate;
 			int hashCode = combinedKey.GetHashCode();
 			return hashCode;
 		}

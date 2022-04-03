@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using AliaSQL.Core;
 using AliaSQL.Core.Model;
 using AliaSQL.Core.Services.Impl;
+using CommandLine;
 
 namespace AliaSQL.Console
 {
@@ -13,47 +15,29 @@ namespace AliaSQL.Console
         private static void Main(string[] args)
         {
             System.Console.Title = "AliaSQL Database Deployment Tool";
-            RequestedDatabaseAction requestedDatabaseAction = RequestedDatabaseAction.Default;
-            if(args.Length>0) Enum.TryParse(args[0], true, out requestedDatabaseAction);
-            if ((args.Length != 4 && args.Length != 6) || requestedDatabaseAction==RequestedDatabaseAction.Default)
-            {
-                InvalidArguments();
-                return;
-            }
-
-            ConnectionSettings settings = null;
-
             var deployer = new ConsoleAliaSQL();
-            var action = requestedDatabaseAction;
-            string server = args[1];
-            string database = args[2];
-            string scriptDirectory = args[3];
             
-            if (args.Length == 4)
+            var parser = new Parser(with =>
             {
-                settings = new ConnectionSettings(server, database, true, null, null);
-            }
-
-            else if (args.Length == 6)
+                //ignore case for enum values
+                with.CaseInsensitiveEnumValues = true;
+            });
+            var o = parser.ParseArguments<Options>(args)
+            .WithParsed<Options>( o =>
             {
-                string username = args[4];
-                string password = args[5];
-
-                settings = new ConnectionSettings(server, database, false, username, password);
-            }
-
-            if (deployer.UpdateDatabase(settings, scriptDirectory, action))
+                var settings = new ConnectionSettings(o.server, o.database, o.integratedAuth, o.username, o.password, o.trustServerCertificate);
+                System.Console.WriteLine("Using connection string:" + settings);
+                deployer.UpdateDatabase(settings, o.scriptDirectory, o.action);
+            })
+            .WithNotParsed(e =>
             {
-                if (Debugger.IsAttached)
-                    System.Console.ReadLine();
-
-                return;
-            }    
+                InvalidArguments(e);
+            });
 
             Environment.ExitCode = 1;
         }
 
-        private static void InvalidArguments()
+        private static void InvalidArguments(IEnumerable<Error> errs)
         {
             System.Console.WriteLine("Invalid Arguments");
             System.Console.WriteLine(" ");
@@ -73,8 +57,43 @@ namespace AliaSQL.Console
             System.Console.WriteLine(" ");
             System.Console.WriteLine("Drop - Drops the database");
 
+            foreach (var error in errs)
+            {
+                System.Console.WriteLine($"error.Tag: {error.Tag}, error.StopsProcessing: {error.StopsProcessing}");
+            }
             if (Debugger.IsAttached)
                 System.Console.ReadLine();
         }
+    }
+    
+    public class Options {
+        [Value(0, Default = RequestedDatabaseAction.Default, Required = true)] 
+        public RequestedDatabaseAction action { get; set; }
+            
+        [Value(1, Required = true, MetaName = "DatabaseServer", HelpText = "Database Server")] 
+        public string server { get; set; }
+            
+        [Value(2, Required = true, MetaName = "DatabaseName", HelpText = "Database Name")]
+        public string database { get; set; }
+            
+        [Value(3, Required = true, MetaName = "Scripts path", HelpText = "Scripts path, e.g. ./sqlScripts/")]
+        public string scriptDirectory { get; set; }
+        
+        [Option(shortName: 'u', longName:"user", Default = null)]
+        public string username { get; set; }
+            
+        [Option(shortName: 'p', longName:"pass", Default = null)]
+        public string password { get; set; }
+
+        public bool integratedAuth
+        {
+            get
+            {
+                return String.IsNullOrEmpty(username);
+            }
+        }
+
+        [Option(shortName: 't', longName:"trustServerCertificate", Default = false) ]
+        public bool trustServerCertificate { get; set; }
     }
 }

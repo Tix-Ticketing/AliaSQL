@@ -21,11 +21,18 @@ namespace AliaSQL.Core.Services.Impl
 
 			if (settings.IntegratedAuthentication)
 			{
-				connectionString.Append("Integrated Security=True;TrustServerCertificate=true;");
+				connectionString.Append("Integrated Security=True;");
 			}
 			else
-				connectionString.AppendFormat("User ID={0};Password={1};TrustServerCertificate=true;", settings.Username, settings.Password);
-			Console.WriteLine(connectionString);
+			{
+				connectionString.AppendFormat($"User ID={settings.Username};Password={settings.Password};",
+					settings.Username, settings.Password);
+			}
+
+			if (settings.TrustServerCertificate)
+			{
+				connectionString.Append($"TrustServerCertificate={settings.TrustServerCertificate};");
+			}
 
 			return connectionString.ToString();
 		}
