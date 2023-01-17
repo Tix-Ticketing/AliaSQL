@@ -22,19 +22,19 @@ namespace AliaSQL.Console
                 //ignore case for enum values
                 with.CaseInsensitiveEnumValues = true;
             });
+            Environment.ExitCode = 3; // unknown error
             var o = parser.ParseArguments<Options>(args)
             .WithParsed<Options>( o =>
             {
                 var settings = new ConnectionSettings(o.server, o.database, o.integratedAuth, o.username, o.password, o.trustServerCertificate);
                 System.Console.WriteLine("Using connection string:" + settings);
-                deployer.UpdateDatabase(settings, o.scriptDirectory, o.action);
+                let success = deployer.UpdateDatabase(settings, o.scriptDirectory, o.action);
+                Environment.ExitCode = success ? 1 : 2;
             })
             .WithNotParsed(e =>
             {
                 InvalidArguments(e);
             });
-
-            Environment.ExitCode = 1;
         }
 
         private static void InvalidArguments(IEnumerable<Error> errs)
