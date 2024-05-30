@@ -98,11 +98,19 @@ namespace AliaSQL.Core
 
                 if (detector.Charset != null)
                 {
-                    return Encoding.GetEncoding(detector.Charset);
+                    try
+                    {
+                        return Encoding.GetEncoding(detector.Charset);
+                    }
+                    catch (ArgumentException)
+                    {
+                        Console.WriteLine($"WARNING: Could not load encoding ${detector.Charset}. Falling back to UTF-8.");
+                        return Encoding.UTF8;
+                    }
                 }
                 else
                 {
-                    return Encoding.ASCII;
+                    return Encoding.UTF8;
                 }
             }
         }
