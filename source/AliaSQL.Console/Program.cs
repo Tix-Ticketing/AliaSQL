@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using AliaSQL.Core;
 using AliaSQL.Core.Model;
 using AliaSQL.Core.Services.Impl;
@@ -12,11 +13,13 @@ namespace AliaSQL.Console
     public class Program
     {
 
-        private static void Main(string[] args)
+        public static void Main(string[] args)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             System.Console.Title = "AliaSQL Database Deployment Tool";
             var deployer = new ConsoleAliaSQL();
-            
+
             var parser = new Parser(with =>
             {
                 //ignore case for enum values
@@ -24,11 +27,11 @@ namespace AliaSQL.Console
             });
             Environment.ExitCode = 3; // unknown error
             var o = parser.ParseArguments<Options>(args)
-            .WithParsed<Options>( o =>
+            .WithParsed<Options>(o =>
             {
                 var settings = new ConnectionSettings(o.server, o.database, o.integratedAuth, o.username, o.password, o.trustServerCertificate);
                 System.Console.WriteLine("Using connection string:" + settings);
-                let success = deployer.UpdateDatabase(settings, o.scriptDirectory, o.action);
+                var success = deployer.UpdateDatabase(settings, o.scriptDirectory, o.action);
                 Environment.ExitCode = success ? 1 : 2;
             })
             .WithNotParsed(e =>
