@@ -25,8 +25,7 @@ namespace AliaSQL.Core.Services.Impl
 			}
 			else
 			{
-				connectionString.AppendFormat($"User ID={settings.Username};Password={settings.Password};",
-					settings.Username, settings.Password);
+				connectionString.Append($"User ID={settings.Username};Password={settings.Password};");
 			}
 
 			if (settings.TrustServerCertificate)
@@ -40,7 +39,7 @@ namespace AliaSQL.Core.Services.Impl
         public ConnectionSettings GetConnectionSettings(string connectionString)
         {
             var cs = new SqlConnectionStringBuilder(connectionString);
-            return new ConnectionSettings(cs.DataSource, cs.InitialCatalog, cs.IntegratedSecurity, cs.UserID, cs.Password);
+            return new ConnectionSettings(cs.DataSource, cs.InitialCatalog, cs.IntegratedSecurity, cs.UserID, cs.Password, cs.TrustServerCertificate);
         }
 
 	}
